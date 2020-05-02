@@ -20,7 +20,8 @@
         "multiparty": "^4.2.1",
         "request": "^2.88.0",
         "request-promise": "^4.2.5",
-        "xiaohuli-package": "^1.0.9"
+        "xiaohuli-package": "^1.0.9",
+        "minimist": "^1.2.3"
     },
     "devDependencies": {}
 }
