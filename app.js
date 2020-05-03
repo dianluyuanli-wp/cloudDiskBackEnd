@@ -8,6 +8,7 @@ const { reqisterPeriodAPI } = require('./Api/period');
 const { reqisterUserAPI, userIsFreezed } = require('./Api/user');
 const { reqisterInterviewerAPI } = require('./Api/interviewer');
 const { registerPageManagerAPI } = require('./Api/pageManager');
+const { uploadApi } = require('./Api/uploadFile');
 const { queryApi, pathNotVerify } = require('./Api/apiDomain');
 
 var jwt = require('jwt-simple');
@@ -23,27 +24,34 @@ app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
     res.header("X-Powered-By",' 3.2.1');
     res.header("Content-Type", "application/json;charset=utf-8");
+    next();
     const rawUrl = req.url;
     //  统一处理鉴权逻辑
-    if (!pathNotVerify.includes(rawUrl)) {
-        if (verifyToken(req.body)) {
-            next()
-        } else {
-            errorSend(res);
-        }
-    } else {
-        next();
-    }
+    // if (!pathNotVerify.includes(rawUrl)) {
+    //     if (verifyToken(req.body)) {
+    //         next()
+    //     } else {
+    //         errorSend(res);
+    //     }
+    // } else {
+    //     next();
+    // }
 });
 
-//  预约时间段的接口
-reqisterPeriodAPI(app);
-//  用户的接口
-reqisterUserAPI(app);
-//  具体预约的接口
-reqisterInterviewerAPI(app);
-//  页面配置的接口
-registerPageManagerAPI(app);
+// //  预约时间段的接口
+// reqisterPeriodAPI(app);
+// //  用户的接口
+// reqisterUserAPI(app);
+// //  具体预约的接口
+// reqisterInterviewerAPI(app);
+// //  页面配置的接口
+// registerPageManagerAPI(app);
+
+uploadApi(app);
+
+app.post(apiPrefix + '/test', async function(req,res){
+    res.send({a: '大家好呀'});
+});
 
 //登陆接口 
 app.post(apiPrefix + '/login', async function(req,res){

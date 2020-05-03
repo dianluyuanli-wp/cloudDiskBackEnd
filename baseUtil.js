@@ -4,6 +4,7 @@ const { queryApi } = require('./Api/apiDomain');
 
 const secret = 'xiaohuli';
 const apiPrefix = '/api';
+const ENV_ID = 'test-container-ojiv6';
 let accessObj = {
     token: '',
     period: 0,
@@ -23,8 +24,8 @@ const getAccessToken = async() => {
     const domain = 'https://api.weixin.qq.com/cgi-bin/token';
     return await ownTool.netModel.get(domain, {
         grant_type: 'client_credential',
-        appid: 'wxac77677dc117cc7f',
-        secret: '4d06c4b654f7145675960e6c9a5a29a2'
+        appid: 'wx8b27b1c81eecd334',
+        secret: '58684ee887a900d5de93bb1f21419151'
     });
 }
 
@@ -69,3 +70,4 @@ exports.secret = secret;
 exports.apiPrefix = apiPrefix;
 exports.errorSend = errorSend;
 exports.loginVerify = loginVerify;
+exports.ENV_ID = ENV_ID;
