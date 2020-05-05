@@ -7,8 +7,7 @@ const { getToken, verifyToken, secret, apiPrefix, errorSend, loginVerify } = req
 const { reqisterPeriodAPI } = require('./Api/period');
 const { reqisterUserAPI, userIsFreezed } = require('./Api/user');
 const { reqisterInterviewerAPI } = require('./Api/interviewer');
-const { registerPageManagerAPI } = require('./Api/pageManager');
-const { uploadApi } = require('./Api/uploadFile');
+const { uploadFileApi } = require('./Api/uploadFile');
 const { queryApi, pathNotVerify } = require('./Api/apiDomain');
 
 var jwt = require('jwt-simple');
@@ -47,7 +46,7 @@ app.all('*', function(req, res, next) {
 // //  页面配置的接口
 // registerPageManagerAPI(app);
 
-uploadApi(app);
+uploadFileApi(app);
 
 app.post(apiPrefix + '/test', async function(req,res){
     res.send({a: '大家好呀'});

@@ -6,7 +6,7 @@ const path = require('path');
 const multiparty = require('multiparty');
 //  const os = require('os');
 const { getToken, verifyToken, apiPrefix, errorSend, loginVerify, ENV_ID } = require('../baseUtil');
-const { updateApi, uploadApi, downLoadApi, queryApi, addApi } = require('./apiDomain');
+const { uploadApi, downLoadApi, queryApi, addApi } = require('./apiDomain');
 
 const UPLOAD_DIR = path.resolve(__dirname, "..", "target"); // 大文件存储目录
 
@@ -35,12 +35,19 @@ const mergeFileChunk = async (filePath, fileName, size) => {
     try {
         //  反复改名啥的很奇怪，但是不这样就会有报错，导致请求返回pending，可能是windows下的bug
         //  文件夹的名字和文件名字不能重复
-        await fse.move(filePath, path.resolve(UPLOAD_DIR, `p${fileName}`));
+        await fse.move(filePath, path.resolve(UPLOAD_DIR, `p${fileName}`)).catch(e => {
+            console.log(e, '第一次')
+        });
         fse.removeSync(chunkDir);
-        await fse.move(path.resolve(UPLOAD_DIR, `p${fileName}`), path.resolve(UPLOAD_DIR, `${fileName}`));
+        // fs.unlink(chunkDir, (e) => {
+        //     console.log(e, '删除文件报错')
+        // })
+        await fse.move(path.resolve(UPLOAD_DIR, `p${fileName}`), path.resolve(UPLOAD_DIR, `${fileName}`)).catch(e => {
+            console.log(e, '第二次')
+        });
     } catch(e) {
         //  不管怎么操作这里都会有神秘报错，errno: -4048 目测是权限或者缓存问题
-        //  console.log(e);
+        console.log(e, '二次兜底');
         await fse.move(path.resolve(UPLOAD_DIR, `p${fileName}`), path.resolve(UPLOAD_DIR, `${fileName}`));
     }
 }
@@ -77,7 +84,7 @@ async function uploadToCloud(filePath, fileName) {
     //  获取图片的下载链接
     const getDownDomain = downLoadApi + wxToken;
     let imgInfo = await ownTool.netModel.post(getDownDomain, {
-        env: 'test-psy-qktuk',
+        env: ENV_ID,
         file_list: [{
             fileid: file_id,
             max_age: 7200
@@ -92,23 +99,28 @@ async function uploadToCloud(filePath, fileName) {
     return imgInfo;
 }
 
-function uploadApi(app) {
+function uploadFileApi(app) {
     //  接收上传的文件片段
     app.post(apiPrefix + '/uploadFile', async function(req, res) {
+        console.log('uppp')
         const multipart = new multiparty.Form();
         multipart.parse(req, async (err, fields, files) => {
             if (err) {
+                console.log(err);
                 return;
             }
             const [chunk] = files.chunk;
             const [hash] = fields.hash;
-            const [filename] = fields.filename
+            const [filename] = fields.filename;
             const chunkDir = path.resolve(UPLOAD_DIR, filename);
+            //const chunkDir = path.resolve(UPLOAD_DIR);
 
             if (!fse.existsSync(chunkDir)) {
-                await fse.mkdirs(chunkDir);
+                await fse.mkdirs(chunkDir).catch(e => {
+                    console.log(e, '最外层')
+                });
             }
-
+            console.log(chunk.path, '虚拟路径')
             await fse.move(chunk.path, `${chunkDir}/${hash}`);
             res.end('received file chunk');
         })
@@ -118,10 +130,11 @@ function uploadApi(app) {
     app.post(apiPrefix + '/fileMergeReq', async function(req, res) {
         const { fileName, size } = req.body;
         const filePath = path.resolve(UPLOAD_DIR, `${fileName}`, `${fileName}`);
+        //const filePath = path.resolve(UPLOAD_DIR, `${fileName}`);
         await mergeFileChunk(filePath, fileName, size);
         const fileInfo = await uploadToCloud(UPLOAD_DIR, `${fileName}`);
         res.send(fileInfo);
     })
 }
 
-exports.uploadApi = uploadApi;
+exports.uploadFileApi = uploadFileApi;
