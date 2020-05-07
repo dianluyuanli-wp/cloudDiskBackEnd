@@ -36,19 +36,20 @@ const mergeFileChunk = async (filePath, fileName, size) => {
         //  反复改名啥的很奇怪，但是不这样就会有报错，导致请求返回pending，可能是windows下的bug
         //  文件夹的名字和文件名字不能重复
         await fse.move(filePath, path.resolve(UPLOAD_DIR, `p${fileName}`)).catch(e => {
-            console.log(e, '第一次')
+            console.log(e)
         });
         fse.removeSync(chunkDir);
         // fs.unlink(chunkDir, (e) => {
         //     console.log(e, '删除文件报错')
         // })
         await fse.move(path.resolve(UPLOAD_DIR, `p${fileName}`), path.resolve(UPLOAD_DIR, `${fileName}`)).catch(e => {
-            console.log(e, '第二次')
+            console.log(e);
         });
     } catch(e) {
         //  不管怎么操作这里都会有神秘报错，errno: -4048 目测是权限或者缓存问题
-        console.log(e, '二次兜底');
-        await fse.move(path.resolve(UPLOAD_DIR, `p${fileName}`), path.resolve(UPLOAD_DIR, `${fileName}`));
+        await fse.move(path.resolve(UPLOAD_DIR, `p${fileName}`), path.resolve(UPLOAD_DIR, `${fileName}`)).catch(e => {
+            console.log(e)
+        });
     }
 }
 
@@ -117,10 +118,9 @@ function uploadFileApi(app) {
 
             if (!fse.existsSync(chunkDir)) {
                 await fse.mkdirs(chunkDir).catch(e => {
-                    console.log(e, '最外层')
+                    console.log(e)
                 });
             }
-            console.log(chunk.path, '虚拟路径')
             await fse.move(chunk.path, `${chunkDir}/${hash}`);
             res.end('received file chunk');
         })
