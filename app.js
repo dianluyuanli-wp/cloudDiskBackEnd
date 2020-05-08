@@ -37,15 +37,6 @@ app.all('*', function(req, res, next) {
     // }
 });
 
-// //  预约时间段的接口
-// reqisterPeriodAPI(app);
-// //  用户的接口
-// reqisterUserAPI(app);
-// //  具体预约的接口
-// reqisterInterviewerAPI(app);
-// //  页面配置的接口
-// registerPageManagerAPI(app);
-
 uploadFileApi(app);
 
 app.post(apiPrefix + '/test', async function(req,res){

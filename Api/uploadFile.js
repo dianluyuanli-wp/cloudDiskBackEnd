@@ -133,6 +133,10 @@ function uploadFileApi(app) {
         //const filePath = path.resolve(UPLOAD_DIR, `${fileName}`);
         await mergeFileChunk(filePath, fileName, size);
         const fileInfo = await uploadToCloud(UPLOAD_DIR, `${fileName}`);
+        let addUser = await ownTool.netModel.post(doamin, {
+            env: ENV_ID,
+            query: 'db.collection(\"fileList\").add({ data: ' + JSON.stringify(newUser) +'})'
+        })
         res.send(fileInfo);
     })
 }
