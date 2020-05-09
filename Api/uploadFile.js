@@ -6,7 +6,7 @@ const path = require('path');
 const multiparty = require('multiparty');
 //  const os = require('os');
 const { getToken, verifyToken, apiPrefix, errorSend, loginVerify, ENV_ID } = require('../baseUtil');
-const { uploadApi, downLoadApi, queryApi, addApi } = require('./apiDomain');
+const { uploadApi, downLoadApi, queryApi, addApi, updateApi } = require('./apiDomain');
 
 const UPLOAD_DIR = path.resolve(__dirname, "..", "target"); // 大文件存储目录
 
@@ -100,10 +100,52 @@ async function uploadToCloud(filePath, fileName) {
     return imgInfo;
 }
 
+//  更新文件列表
+async function updateList(fileObj, fileName, size) {
+    const { download_url, fileid } = fileObj;
+    const dataInfo = {
+        fileName,
+        downloadUrl: download_url,
+        fileId: fileid,
+        size,
+        timeStamp: Date.now()
+    };
+    const dataInfoString = JSON.stringify(dataInfo);
+    const wxToken = await getToken();
+    let fileId = '';
+    let isNew = false;
+    //  先看有没有
+    const res = await ownTool.netModel.post(
+        queryApi + wxToken, {
+        env: ENV_ID,
+        query: 'db.collection(\"fileList\").where({ fileName: "' + fileName +'"}).get()'
+    });
+
+    //  如果已经有了，就更新记录
+    if (res.data.length) {
+        fileId = JSON.parse(res.data[0])._id;
+        const res1 = await ownTool.netModel.post(updateApi + wxToken, {
+            env: ENV_ID,
+            query: 'db.collection(\"fileList\").where({ fileName: "' + fileName + '"}).update({ data: ' + dataInfoString +'})'
+        })
+        //console.log(res);
+    //  否则新建一个
+    } else {
+        const res2 = await ownTool.netModel.post(addApi + wxToken, {
+            env: ENV_ID,
+            query: 'db.collection(\"fileList\").add({ data: ' + dataInfoString +'})'
+        })
+        fileId = res2.id_list[0];
+        isNew = true;
+        console.log(res2);
+    }
+    const finalData = Object.assign(dataInfo, { _id: fileId });
+    return { fileData: finalData, isNew };
+}
+
 function uploadFileApi(app) {
     //  接收上传的文件片段
     app.post(apiPrefix + '/uploadFile', async function(req, res) {
-        console.log('uppp')
         const multipart = new multiparty.Form();
         multipart.parse(req, async (err, fields, files) => {
             if (err) {
@@ -115,7 +157,6 @@ function uploadFileApi(app) {
             const [filename] = fields.filename;
             const chunkDir = path.resolve(UPLOAD_DIR, filename);
             //const chunkDir = path.resolve(UPLOAD_DIR);
-
             if (!fse.existsSync(chunkDir)) {
                 await fse.mkdirs(chunkDir).catch(e => {
                     console.log(e)
@@ -133,11 +174,8 @@ function uploadFileApi(app) {
         //const filePath = path.resolve(UPLOAD_DIR, `${fileName}`);
         await mergeFileChunk(filePath, fileName, size);
         const fileInfo = await uploadToCloud(UPLOAD_DIR, `${fileName}`);
-        let addUser = await ownTool.netModel.post(doamin, {
-            env: ENV_ID,
-            query: 'db.collection(\"fileList\").add({ data: ' + JSON.stringify(newUser) +'})'
-        })
-        res.send(fileInfo);
+        const dbInfo = await updateList(fileInfo.file_list[0], fileName, size);
+        res.send(dbInfo);
     })
 }
 

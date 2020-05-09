@@ -10,5 +10,9 @@ exports.downLoadApi = 'https://api.weixin.qq.com/tcb/batchdownloadfile?access_to
 exports.addApi = 'https://api.weixin.qq.com/tcb/databaseadd?access_token=';
 //  查询数据
 exports.queryApi = 'https://api.weixin.qq.com/tcb/databasequery?access_token=';
+//  删除文件
+exports.deleteFileApi = 'https://api.weixin.qq.com/tcb/batchdeletefile?access_token=';
+//  删除数据记录
+exports.deleteApi = 'https://api.weixin.qq.com/tcb/databasedelete?access_token=';
 
 exports.pathNotVerify = ['/api/login', '/api/uploadFile'];

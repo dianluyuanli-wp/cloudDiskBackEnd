@@ -4,10 +4,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 let ownTool = require('xiaohuli-package');
 const { getToken, verifyToken, secret, apiPrefix, errorSend, loginVerify } = require('./baseUtil');
-const { reqisterPeriodAPI } = require('./Api/period');
-const { reqisterUserAPI, userIsFreezed } = require('./Api/user');
-const { reqisterInterviewerAPI } = require('./Api/interviewer');
 const { uploadFileApi } = require('./Api/uploadFile');
+const { fileList } = require('./Api/updateList');
 const { queryApi, pathNotVerify } = require('./Api/apiDomain');
 
 var jwt = require('jwt-simple');
@@ -38,6 +36,7 @@ app.all('*', function(req, res, next) {
 });
 
 uploadFileApi(app);
+fileList(app);
 
 app.post(apiPrefix + '/test', async function(req,res){
     res.send({a: '大家好呀'});
