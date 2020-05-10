@@ -4,14 +4,10 @@ const request = require('request-promise');
 const fse = require('fs-extra');
 const path = require('path');
 const multiparty = require('multiparty');
-//  const os = require('os');
 const { getToken, verifyToken, apiPrefix, errorSend, loginVerify, ENV_ID } = require('../baseUtil');
 const { uploadApi, downLoadApi, queryApi, addApi, updateApi } = require('./apiDomain');
 
 const UPLOAD_DIR = path.resolve(__dirname, "..", "target"); // 大文件存储目录
-
-// const regWin = /window/i;
-// const parsePath = (route) => regWin.test(os.type()) ? route.replace(/\\/g, '/') : route;
 
 const pipeStream = (path, writableStream) => 
     new Promise(resolve => {
@@ -39,9 +35,6 @@ const mergeFileChunk = async (filePath, fileName, size) => {
             console.log(e)
         });
         fse.removeSync(chunkDir);
-        // fs.unlink(chunkDir, (e) => {
-        //     console.log(e, '删除文件报错')
-        // })
         await fse.move(path.resolve(UPLOAD_DIR, `p${fileName}`), path.resolve(UPLOAD_DIR, `${fileName}`)).catch(e => {
             console.log(e);
         });
@@ -128,7 +121,6 @@ async function updateList(fileObj, fileName, size) {
             env: ENV_ID,
             query: 'db.collection(\"fileList\").where({ fileName: "' + fileName + '"}).update({ data: ' + dataInfoString +'})'
         })
-        //console.log(res);
     //  否则新建一个
     } else {
         const res2 = await ownTool.netModel.post(addApi + wxToken, {
@@ -137,7 +129,6 @@ async function updateList(fileObj, fileName, size) {
         })
         fileId = res2.id_list[0];
         isNew = true;
-        console.log(res2);
     }
     const finalData = Object.assign(dataInfo, { _id: fileId });
     return { fileData: finalData, isNew };
@@ -156,7 +147,6 @@ function uploadFileApi(app) {
             const [hash] = fields.hash;
             const [filename] = fields.filename;
             const chunkDir = path.resolve(UPLOAD_DIR, filename);
-            //const chunkDir = path.resolve(UPLOAD_DIR);
             if (!fse.existsSync(chunkDir)) {
                 await fse.mkdirs(chunkDir).catch(e => {
                     console.log(e)
@@ -169,12 +159,11 @@ function uploadFileApi(app) {
 
     //  合并文件
     app.post(apiPrefix + '/fileMergeReq', async function(req, res) {
-        const { fileName, size } = req.body;
+        const { fileName, size, fileSize } = req.body;
         const filePath = path.resolve(UPLOAD_DIR, `${fileName}`, `${fileName}`);
-        //const filePath = path.resolve(UPLOAD_DIR, `${fileName}`);
         await mergeFileChunk(filePath, fileName, size);
         const fileInfo = await uploadToCloud(UPLOAD_DIR, `${fileName}`);
-        const dbInfo = await updateList(fileInfo.file_list[0], fileName, size);
+        const dbInfo = await updateList(fileInfo.file_list[0], fileName, fileSize);
         res.send(dbInfo);
     })
 }

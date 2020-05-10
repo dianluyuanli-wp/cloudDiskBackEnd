@@ -1,9 +1,4 @@
 let ownTool = require('xiaohuli-package');
-let fs = require('fs');
-const request = require('request-promise');
-const fse = require('fs-extra');
-const path = require('path');
-const multiparty = require('multiparty');
 //  const os = require('os');
 const { getToken, verifyToken, apiPrefix, errorSend, loginVerify, ENV_ID } = require('../baseUtil');
 const { uploadApi, downLoadApi, queryApi, addApi, deleteFileApi, deleteApi } = require('./apiDomain');
