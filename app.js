@@ -61,24 +61,12 @@ app.post(apiPrefix + '/login', async function(req,res){
         }
         res.send(Object.assign({}, sendObj, {
             status: 'ok',
-            currentAuthority: verifyObj.identity,
             //  用户请求的鉴权token
             accessToken: jwt.encode(Object.assign(req.body, { tokenTimeStamp: Date.now() } ), secret)
         }))
     } else {
         res.send(sendObj);
     }
-});
-
-//拉取用户信息接口 
-app.post(apiPrefix + '/currentUser', async function(req,res){
-    const wxToken = await getToken();
-    const doamin = queryApi + wxToken;
-    let a = await ownTool.netModel.post(doamin, {
-        env: 'test-psy-qktuk',
-        query: 'db.collection(\"userDetail\").where({name:"' + req.body.name + '"}).get()'
-    })
-    res.send(a);
 });
  
 //配置服务端口
