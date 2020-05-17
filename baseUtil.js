@@ -43,25 +43,24 @@ const getToken = async () => {
     } 
 }
 
-const loginVerify = async function(userName, password) {
+const loginVerify = async function(password) {
     const token = await getToken();
     const doamin = queryApi + token;
     const request =  await ownTool.netModel.post(doamin, {
-        env: 'test-psy-qktuk',
-        query: 'db.collection(\"user\").where({name:"' + userName + '"}).get()'
+        env: ENV_ID,
+        query: 'db.collection(\"user\").where({name:"wang"}).get()'
     })
     const resObj = JSON.parse(request.data);
     return {
-        verifyResult: request.errmsg === 'ok' && resObj.secret.toString() === password,
-        identity: resObj.identity
+        verifyResult: request.errmsg === 'ok' && resObj.secret.toString() === password
     }
 }
 
 const outOfDatePeriod = 2 * 60 * 60 * 1000;
 
-const verifyToken = ({name, token = ''}) => {
+const verifyToken = ({token = ''}) => {
     const res =  token ? jwt.decode(token, secret) : {};
-    return res.userName === name && (res.tokenTimeStamp + outOfDatePeriod) > Date.now();
+    return (res.tokenTimeStamp + outOfDatePeriod) > Date.now();
 }
 
 exports.getToken = getToken;

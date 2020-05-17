@@ -2,11 +2,10 @@ var express=require('express');
 var app =express();
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-let ownTool = require('xiaohuli-package');
-const { getToken, verifyToken, secret, apiPrefix, errorSend, loginVerify } = require('./baseUtil');
+const { verifyToken, secret, apiPrefix, errorSend, loginVerify } = require('./baseUtil');
 const { uploadFileApi } = require('./Api/uploadFile');
 const { fileList } = require('./Api/updateList');
-const { queryApi, pathNotVerify } = require('./Api/apiDomain');
+const { pathNotVerify } = require('./Api/apiDomain');
 
 var jwt = require('jwt-simple');
 
@@ -21,51 +20,36 @@ app.all('*', function(req, res, next) {
     res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
     res.header("X-Powered-By",' 3.2.1');
     res.header("Content-Type", "application/json;charset=utf-8");
-    next();
     const rawUrl = req.url;
     //  统一处理鉴权逻辑
-    // if (!pathNotVerify.includes(rawUrl)) {
-    //     if (verifyToken(req.body)) {
-    //         next()
-    //     } else {
-    //         errorSend(res);
-    //     }
-    // } else {
-    //     next();
-    // }
+    if (!pathNotVerify.includes(rawUrl)) {
+        if (verifyToken(req.body)) {
+            next()
+        } else {
+            errorSend(res);
+        }
+    } else {
+        next();
+    }
 });
 
 uploadFileApi(app);
 fileList(app);
 
-app.post(apiPrefix + '/test', async function(req,res){
-    res.send({a: '大家好呀'});
-});
-
 //登陆接口 
 app.post(apiPrefix + '/login', async function(req,res){
-    const { password, userName, type } = req.body;
-    const verifyObj = await loginVerify(userName, password);
-    const sendObj = {
-        status: 'error',
-        type,
-        currentAuthority: 'guest',
-        accessToken: ''
-    }
+    const { password } = req.body;
+    const verifyObj = await loginVerify(password);
     if (verifyObj.verifyResult) {
-        //  判断是否冻结
-        const isFreezed = await userIsFreezed(userName);
-        if (isFreezed) {
-            res.send(Object.assign({}, sendObj, { status: 'isFreezed'}));
-            return;
-        }
-        res.send(Object.assign({}, sendObj, {
-            status: 'ok',
+        res.send({
+            verifyResult: true,
             //  用户请求的鉴权token
             accessToken: jwt.encode(Object.assign(req.body, { tokenTimeStamp: Date.now() } ), secret)
-        }))
+        })
     } else {
-        res.send(sendObj);
+        res.send({
+            verifyResult: false,
+        });
     }
 });
  
