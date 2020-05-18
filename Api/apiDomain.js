@@ -15,4 +15,4 @@ exports.deleteFileApi = 'https://api.weixin.qq.com/tcb/batchdeletefile?access_to
 //  删除数据记录
 exports.deleteApi = 'https://api.weixin.qq.com/tcb/databasedelete?access_token=';
 
-exports.pathNotVerify = ['/api/login'];
+exports.pathNotVerify = ['/api/login', '/api/uploadFile'];
