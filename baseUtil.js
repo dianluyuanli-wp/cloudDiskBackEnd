@@ -1,10 +1,11 @@
 let ownTool = require('xiaohuli-package');
 var jwt = require('jwt-simple');
 const { queryApi } = require('./Api/apiDomain');
+const { sensitiveInfo } = require('./operatedFile');
 
 const secret = 'xiaohuli';
 const apiPrefix = '/api';
-const ENV_ID = 'test-container-ojiv6';
+const ENV_ID = sensitiveInfo.ENV_ID;
 let accessObj = {
     token: '',
     period: 0,
@@ -24,8 +25,8 @@ const getAccessToken = async() => {
     const domain = 'https://api.weixin.qq.com/cgi-bin/token';
     return await ownTool.netModel.get(domain, {
         grant_type: 'client_credential',
-        appid: 'wx8b27b1c81eecd334',
-        secret: '58684ee887a900d5de93bb1f21419151'
+        appid: sensitiveInfo.appid,
+        secret: sensitiveInfo.secret
     });
 }
 

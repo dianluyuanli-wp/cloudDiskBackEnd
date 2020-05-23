@@ -4,7 +4,7 @@
     "private": true,
     "sideEffects": false,
     "scripts": {
-        "start": "node app.js",
+        "start": "node tools/beforeStart.js && node app.js",
         "dev": "nodemon app.js"
     },
     "dependencies": {
